@@ -1,0 +1,111 @@
+import random
+
+
+def make_deck():
+    """Creating a new deck as a list"""
+    suit_list = ['Diamonds', 'Hearts', 'Clubs', 'Spades']
+    rank_list = ['2', '3', '4', '5', '6', '7', '8', '9', '10',
+                 'Jack', 'Queen', 'King', 'Ace']
+    deck = []
+    for i_suit in suit_list:
+        for i_card in rank_list:
+            deck.append((i_card, i_suit))
+    return deck
+
+
+class Player:
+    """Each player has a name, a hand with cards, and a score ('total', default 0)"""
+    total = 0
+
+    def print_info(self):
+        print(f'У Вас {self.total} очков.')
+
+    def __init__(self, name):
+        self.name = name
+        self.hand = []
+
+    def take_card(self, deck, how_many_cards):
+        """
+        a function that takes a random card from the deck and transfers it to the player's hand
+
+        :param deck: current state of the deck
+        :param how_many_cards: number of cards the player will take
+        :return: updated state of the player's hand and deck
+        """
+        for _ in range(how_many_cards):
+            i_card = random.randint(0, len(deck) - 1)
+            self.hand.append(deck[i_card][0])
+            deck.remove(deck[i_card])
+        return self.hand, deck
+
+    def scoring(self):
+        """
+        scoring function in the player's hand
+
+        :return: number of points ('total')
+        """
+        if len(self.hand) == 2 and \
+                self.hand[0] == self.hand[1] == 'Ace':
+            self.total = 21
+        else:
+            for card in range(0, len(self.hand)):
+                if self.hand[card].isdigit():
+                    self.total += int(self.hand[card])
+                elif self.hand[card] != 'Ace':
+                    self.total += 10
+                elif self.total < 11:
+                    self.total += 11
+                else:
+                    self.total += 1
+            self.hand.clear()
+
+
+def game(player_1, player_2):
+    new_deck = make_deck()
+    player_1.take_card(new_deck, 2)
+    player_2.take_card(new_deck, 2)
+    player_1.scoring()
+    player_2.scoring()
+    if player_1.total == player_2.total == 21:
+        print('Ничья!')
+        return None
+    else:
+        while player_1.total < 22:
+            player_1.print_info()
+            while player_2.total < 12:
+                player_2.take_card(new_deck, 1)
+                player_2.scoring()
+            question = input('Хотите взять еще карту? (да/нет) ').lower()
+            if question == 'да':
+                player_1.take_card(new_deck, 1)
+                player_1.scoring()
+            else:
+                print('Вскрываем карты!')
+                if player_1.total == player_2.total:
+                    print('Ничья!')
+                    return None
+                elif player_1.total > player_2.total:
+                    print(f'Вы выиграли! У диллера {player_2.total} очков')
+                    return 1
+                else:
+                    print(f'Вы проиграли! У диллера {player_2.total} очков')
+                    return 0
+        else:
+            player_1.print_info()
+            print(f'Вы проиграли! У диллера {player_2.total} очков')
+            return 0
+
+
+score = [0, 0]
+while True:
+    player_Kostya = Player('Костя')
+    diller = Player('Диллер')
+    winner = game(player_Kostya, diller)
+    if winner == 0:
+        score[0] += 1
+    elif winner == 1:
+        score[1] += 1
+    else:
+        pass
+    print('Диллер Костя')
+    print(score[0], '\t', '\t', score[1])
